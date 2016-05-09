@@ -42,7 +42,10 @@ def finite_difference_check(layer, fwd, all_values, backpropagated_gradients, na
 	if error_count == 0:
 		print layer.__class__.__name__, 'Layer Gradient Check Passed'
 	else:
-		print layer.__class__.__name__, 'Layer Gradient Check Failed for {}/{} parameters'.format(error_count, dX.size + dP.size)
+		param_count = 0
+		for val in all_values:
+			param_count += val.size
+		print layer.__class__.__name__, 'Layer Gradient Check Failed for {}/{} parameters'.format(error_count, param_count)
 
 
 def test_layer(layer):
@@ -50,14 +53,13 @@ def test_layer(layer):
 	Y = layer.forward(X)
 	T_rand = np.random.randn(*Y.shape)		# random target for a multiplicative loss
 	loss = np.sum(Y * T_rand)				# loss
-	
-	dY = T_rand
-	dX = layer.backward(dY)
+
+	dX = layer.backward(T_rand)
 	dP = layer.get_grads()
-	
+
 	def fwd():
-		layer.set_params(P)
 		layer.forget()
+		layer.set_params(P)
 		return np.sum(layer.forward(X) * T_rand)
 
 	all_values = [X, P]
@@ -85,19 +87,44 @@ def test_loss(layer):
 	finite_difference_check(layer, fwd, all_values, backpropagated_gradients, names, delta, error_threshold)
 
 
-delta = 1e-4
+def test_activation(layer):
+	Y = layer.forward(X)
+	T_rand = np.random.randn(*Y.shape)		# random target for a multiplicative loss
+	loss = np.sum(Y * T_rand)				# loss
+
+	dX = layer.backward(T_rand)
+
+	def fwd():
+		return np.sum(layer.forward(X) * T_rand)
+
+	all_values = [X]
+	backpropagated_gradients = [dX]
+	names = ['X']
+
+	finite_difference_check(layer, fwd, all_values, backpropagated_gradients, names, delta, error_threshold)
+
+
+delta = 1e-5
 error_threshold = 1e-3
-time_steps = 3
-n_input = 5
+time_steps = 5
+n_input = 3
 batch_size = 7
 
 X = np.random.randn(time_steps, n_input, batch_size)
 
-# linear linear test
 n_output = 20
 layer = Linear(n_input, n_output)
 test_layer(layer=layer)
 
-# Softmax Cross Entropy Loss layer test
 layer = SoftmaxCrossEntropyLoss()
 test_loss(layer=layer)
+
+layer = CWRNN(n_input=n_input, n_hidden=8, n_modules=4, T_max=time_steps, last_state_only=False)
+test_layer(layer=layer)
+
+layer = TanH()
+test_activation(layer=layer)
+
+layer = Sigmoid()
+test_activation(layer=layer)
+
