@@ -1,2 +1,4 @@
 
 *.pyc
+
+datasets/mnist.pkl.gz
