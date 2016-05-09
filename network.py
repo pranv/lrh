@@ -15,24 +15,24 @@ def backward(model):
 	return gradient
 
 
-def load_weights(model, W):
+def load_params(model, W):
 	for layer in model:
-		w = layer.get_weights()
+		w = layer.get_params()
 		if w is None:
 			continue
 		w_shape = w.shape
 		w, W = np.split(W, [np.prod(w_shape)])
-		layer.set_weights(w.reshape(w_shape))
+		layer.set_params(w.reshape(w_shape))
 
 
-def extract_weights(model):
-	weights = []
+def extract_params(model):
+	params = []
 	for layer in model:
-		w = layer.get_weights()
+		w = layer.get_params()
 		if w is None:
 			continue
-		weights.append(w)
-	W = np.concatenate(weights)
+		params.append(w)
+	W = np.concatenate(params)
 	return np.array(W)
 
 
