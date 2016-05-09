@@ -72,3 +72,7 @@ batch_size = 7
 
 X = np.random.randn(time_steps, n_input, batch_size)
 
+# linear test
+n_output = 20
+layer = Linear(n_input, n_output)
+test_layer(layer=layer, X=X)
