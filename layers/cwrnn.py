@@ -26,7 +26,7 @@ class CWRNN(Layer):
 		W = np.random.randn(n_hidden, n_input + n_hidden + 1) 	# +1 for bias, single combined matrix 
 																# for recurrent and input projections
 
-		# glorotize and orthogonalize the recurrent and non recurrent aspects respectively
+		# glorotize and orthogonalize the non recurrent and recurrent aspects respectively
 		W[:, :n_input] = glorotize(W[:, :n_input])
 		W[:, n_input:-1] = orthogonalize(W[:, n_input:-1])
 		
@@ -52,7 +52,7 @@ class CWRNN(Layer):
 		n_hidden = self.n_hidden
 		n_modules = self.n_modules
 		
-		D = self.softmax.forward(self.d)				# get activations
+		D = self.softmax.forward(self.d)		# get activations
 		a = np.dot(self.C, D)
 		A = np.repeat(a, n_hidden / n_modules, axis=1) 	# for each state in a module
 		A = A[:, :, np.newaxis]
