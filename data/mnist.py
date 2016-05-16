@@ -11,7 +11,7 @@ def to_categorical(y):
 
 class loader(object):
 	def __init__(self, batch_size=50, permuted=False):
-		path = 'datasets/mnist.pkl.gz'
+		path = 'data/mnist.pkl.gz'
 		f = gzip.open(path, 'rb')
 		(X_train, y_train), (X_val, y_val), (X_test, y_test) = cPickle.load(f)
 		f.close()
