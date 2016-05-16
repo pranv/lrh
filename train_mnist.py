@@ -3,7 +3,7 @@ import numpy as np
 from layers import *
 from network import *
 from climin import RmsProp, Adam, GradientDescent
-from datasets.mnist import loader
+from data.mnist import loader
 
 import time
 import pickle
@@ -14,20 +14,21 @@ plt.ion()
 plt.style.use('kosh')
 plt.figure(figsize=(12, 7))
 
+
 np.random.seed(np.random.randint(1213))
 
-experiment_name = 'mnist_basic'
+experiment_name = 'm_cw2_0.5BD_0.01WD'
 
 permuted = False
 
 n_input = 1
-n_hidden = 128
-n_modules = 8
+n_hidden = 64
+n_modules = 4
 n_output = 10
 
-batch_size = 50
-learning_rate = 2e-3
-niterations = 20000
+batch_size = 20
+learning_rate = 1e-5
+niterations = 100000
 momentum = 0.9
 
 gradient_clip = (-1.0, 1.0)
@@ -65,6 +66,7 @@ path = 'results/' + experiment_name + '/'
 
 logs['loss'] = []
 logs['val_loss'] = []
+logs['accuracy'] = []
 logs['smooth_loss'] = [np.log(10)]
 logs['gradient_norm'] = []
 logs['clipped_gradient_norm'] = []
@@ -72,9 +74,7 @@ logs['clipped_gradient_norm'] = []
 
 model = [
 			CWRNN(n_input=n_input, n_hidden=n_hidden, n_modules=n_modules, T_max=784, last_state_only=True),
-			Linear(n_hidden, 128),
-			TanH(),
-			Linear(128, n_output),
+			Linear(n_hidden, n_output),
  			SoftmaxCrossEntropyLoss()
  		]
 
@@ -88,9 +88,12 @@ for i in optimizer:
 	if i['n_iter'] > niterations:
 		break
 
+	print '\n\n'
 	print str(data.epoch) + '\t' + str(i['n_iter']), '\t',
 	print logs['loss'][-1], '\t',
 	print logs['gradient_norm'][-1]
+	print_info(model)
+	print '\n', '----' * 20, '\n'
 
 	if data.epoch_complete:
 		inputs, labels = data.fetch_val()
@@ -103,33 +106,43 @@ for i in optimizer:
 			input = inputs[j]
 			label = labels[j]
 			val_loss += forward(model, input, label)
+		val_loss /= len(inputs)
 		logs['val_loss'].append(val_loss)
 		print '..' * 20
 		print 'validation loss: ', val_loss
 
-		'''
 		inputs, labels = data.fetch_test()
 		nsamples = inputs.shape[2]
 		inputs = np.split(inputs, nsamples / batch_size, axis=2)
 		labels = np.split(labels, nsamples / batch_size, axis=2)
-
+	
 		correct = 0
 		for j in range(len(inputs)):
-			forget(model1)
+			forget(model)
 			input = inputs[j]
 			label = labels[j]
-			pred = forward(model1, input, label)
+			_ = forward(model, input, label)
+			pred = model[-1].probs
 			good = np.sum(label.argmax(axis=1) == pred.argmax(axis=1))
 			correct += good
 
-		correct /= float(nsamples)
-
-		print 'accuracy: ', correct * 100
+		accuracy = correct / float(nsamples)
+		logs['accuracy'].append(accuracy)
+		print 'accuracy: ', accuracy
 		print '..' * 20
-		'''
 		
 		data.epoch_complete = False
 
+		plt.figure(2)
+		plt.clf()
+		plt.plot(logs['val_loss'], label='validation')
+		plt.legend()
+		plt.draw()
+		plt.figure(3)
+		plt.clf()
+		plt.plot(logs['accuracy'], label='accuracy')
+		plt.legend()
+		plt.draw()
 
 
 	if i['n_iter'] % save_every == 0:
@@ -139,11 +152,12 @@ for i in optimizer:
 		f.close()
 
 	if i['n_iter'] % plot_every == 0:
+		plt.figure(1)
 		plt.clf()
 		plt.plot(logs['smooth_loss'], label='training')
-		#plt.plot(logs['val_loss'], label='validation')
 		plt.legend()
 		plt.draw()
+
 
 print 'serializing logs... '
 f = open(path + 'logs.logs', 'w')
