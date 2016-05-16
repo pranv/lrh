@@ -4,17 +4,19 @@ from base import Layer
 from layer_utils import glorotize, orthogonalize
 
 
-def softmax(X):
-	exp = np.exp(X)
-	probs = exp / np.sum(exp, axis=0, keepdims=True)
-	return probs
+class Softmax(Layer):
+	def forward(self, X):
+		exp = np.exp(X)
+		probs = exp / np.sum(exp, axis=0, keepdims=True)
+		self.probs = probs	
+		return probs
 
-
-def dsoftmax(Y, dY):
-    dX = Y * dY
-    sumdX = np.sum(dX, axis=0, keepdims=True)
-    dX -= Y * sumdX
-    return dX
+	def backward(self, dY):
+		Y = self.probs
+		dX = Y * dY
+		sumdX = np.sum(dX, axis=0, keepdims=True)
+		dX -= Y * sumdX
+		return dX
 
 
 class CWRNN(Layer):
@@ -27,14 +29,16 @@ class CWRNN(Layer):
 		# glorotize and orthogonalize the recurrent and non recurrent aspects respectively
 		W[:, :n_input] = glorotize(W[:, :n_input])
 		W[:, n_input:-1] = orthogonalize(W[:, n_input:-1])
-
-		# distribution over clocks for each module (T_max x n_modules)
-		d = np.random.randn(T_max, n_modules) * 0.1
-
-		# time kernel (T_max x T_max)
+		
+		# time kernel (T_max x n_clocks)
 		C = np.repeat(np.arange(T_max).reshape(1, -1), T_max, axis=0)
 		C = ((C % np.arange(1, T_max + 1).reshape(-1, 1)) == 0) * 1.0
 		C = C.T
+
+		# distribution over clocks for each module (T_max x n_modules)
+		d = np.zeros((T_max, n_modules))
+
+		self.softmax = Softmax()
 
 		self.W = W
 		self.d = d
@@ -48,11 +52,9 @@ class CWRNN(Layer):
 		n_hidden = self.n_hidden
 		n_modules = self.n_modules
 		
-		# get activations
-		# (T_max x T_max) . (T_max x n_modules)= (T_max x n_modules)
-		D = softmax(self.d)
+		D = self.softmax.forward(self.d)				# get activations
 		a = np.dot(self.C, D)
-		A = np.repeat(a, n_hidden / n_modules, axis=1) # (T_max x n_hidden)
+		A = np.repeat(a, n_hidden / n_modules, axis=1) 	# for each state in a module
 		A = A[:, :, np.newaxis]
 
 		V = np.zeros((T, n_input + n_hidden + 1, B))
@@ -69,7 +71,7 @@ class CWRNN(Layer):
 			H[t] = A[t] * H_new[t] + (1 - A[t]) * H_prev		# leaky update
 			H_prev = H[t]
 
-		self.A, self.a, self.D = A, a, D
+		self.A, self.a = A, a
 		self.V, self.h_new, self.H_new, self.H = V, h_new, H_new, H
 
 		if self.last_state_only:
@@ -116,9 +118,10 @@ class CWRNN(Layer):
 		dA = dA[:, :, 0]
 		da = dA.reshape(self.T_max, -1, n_hidden / n_modules).sum(axis=-1)
 		dD = np.dot(self.C.T, da)
-		dd = dsoftmax(self.D, dD)
+		dd = self.softmax.backward(dD)
 
-		self.dW = dW
+		
+		self.dW = dW + 0.01 * self.W
 		self.dd = dd
 		 
 		return dX
@@ -148,3 +151,9 @@ class CWRNN(Layer):
 
 	def remember(self):
 		pass
+
+	def print_info(self):
+		_D = self.d.copy()
+		print 'dominant wave period: ', _D.argmax(axis=0) + 1
+		print 'avg. power (all): ', _D.mean()
+		print 'avg. power waves: ', self.A.mean()
