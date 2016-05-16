@@ -50,3 +50,8 @@ def extract_grads(model):
 def forget(model):
 	for layer in model:
 		layer.forget()
+
+
+def print_info(model):
+	for layer in model:
+		layer.print_info()
