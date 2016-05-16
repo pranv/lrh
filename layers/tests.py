@@ -131,3 +131,6 @@ test_activation(layer=layer)
 
 layer = CWRNN_NORM(n_input=n_input, n_hidden=8, n_modules=4, T_max=time_steps, last_state_only=False)
 test_layer(layer=layer)
+
+layer = CWRNN_L1(n_input=n_input, n_hidden=8, n_modules=4, T_max=time_steps, last_state_only=False)
+test_layer(layer=layer)
