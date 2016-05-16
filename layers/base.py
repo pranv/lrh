@@ -25,3 +25,6 @@ class Layer(object):
 
 	def remember(self):
 		pass
+
+	def print_info(self):
+		pass
