@@ -24,3 +24,5 @@ class Sigmoid(Layer):
 		Y = self.Y
 		dX = Y * (1.0 - Y) * dY
 		return dX
+
+

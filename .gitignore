@@ -4,3 +4,7 @@
 results/
 
 datasets/mnist.pkl.gz
+
+data/mnist.pkl.gz
+
+data/ptb.txt
