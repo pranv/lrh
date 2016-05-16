@@ -5,7 +5,7 @@ from layer_utils import glorotize, orthogonalize
 
 from scipy import special
 
-'''
+
 class Normalize(Layer):
 	def __init__(self, axis=0):
 		self.axis = axis
@@ -35,32 +35,6 @@ class Normalize(Layer):
 		dX[self.amn, range(dY.shape[1])] = np.sum((self.X - self.mx) * dY / (self.mx - self.mn) ** 2, axis=self.axis)
 		
 		return dX
-'''
-
-
-class Normalize(Layer):
-	def __init__(self, axis=0):
-		self.axis = axis
-
-	def forward(self, X):
-		mx = X.max(axis=self.axis)
-
-		amx = X.argmax(axis=self.axis)
-
-		Y = X / mx 
-
-		self.mx = mx
-		self.amx = amx
-		self.X = X
-		self.Y = Y
-		return Y
-
-	def backward(self, dY):
-		dY[self.amx, range(dY.shape[1])] = 0.0
-		dX = dY / self.mx
-		dX[self.amx, range(dY.shape[1])] = np.sum(-self.Y * dY / self.mx, axis=self.axis)
-	
-		return dX
 
 
 class Softmax(Layer):
@@ -78,7 +52,7 @@ class Softmax(Layer):
 		return dX
 
 
-class CWRNN2(Layer):
+class CWRNN_NORM(Layer):
 	def __init__(self, n_input, n_hidden, n_modules, T_max, last_state_only=False):
 		assert(n_hidden % n_modules == 0)
 
@@ -182,7 +156,7 @@ class CWRNN2(Layer):
 		dD = np.dot(self.C.T, da)
 		dd = self.softmax.backward(dD)
 		
-		self.dW = dW + 0.01 * self.W
+		self.dW = dW
 		self.dd = dd 
 		 
 		return dX

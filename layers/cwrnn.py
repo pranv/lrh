@@ -121,7 +121,7 @@ class CWRNN(Layer):
 		dd = self.softmax.backward(dD)
 
 		
-		self.dW = dW + 0.01 * self.W
+		self.dW = dW
 		self.dd = dd
 		 
 		return dX
