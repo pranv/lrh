@@ -17,7 +17,7 @@ plt.figure(figsize=(12, 7))
 
 np.random.seed(np.random.randint(1213))
 
-experiment_name = 'm_cw2_0.5BD_0.01WD'
+experiment_name = ''
 
 permuted = False
 
@@ -27,8 +27,8 @@ n_modules = 4
 n_output = 10
 
 batch_size = 20
-learning_rate = 1e-5
-niterations = 100000
+learning_rate = 1e-3
+niterations = 20000
 momentum = 0.9
 
 gradient_clip = (-1.0, 1.0)
