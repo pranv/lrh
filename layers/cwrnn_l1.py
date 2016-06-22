@@ -37,6 +37,7 @@ class CWRNN_L1(Layer):
 		
 		D = self.d		# get activations
 		a = np.dot(self.C, D)
+		a = np.clip(a, 0.0, 1.0)
 		A = np.repeat(a, n_hidden / n_modules, axis=1) 	# for each state in a module
 		A = A[:, :, np.newaxis]
 
@@ -102,10 +103,9 @@ class CWRNN_L1(Layer):
 		da = dA.reshape(self.T_max, -1, n_hidden / n_modules).sum(axis=-1)
 		dD = np.dot(self.C.T, da)
 		dd = dD
-
 		
 		self.dW = dW
-		self.dd = dd + 1.0 / self.d.size * np.sign(self.d)
+		self.dd = dd + 0.01 * np.sign(self.d)
 		 
 		return dX
 
@@ -128,3 +128,8 @@ class CWRNN_L1(Layer):
 	def clear_grads(self):
 		self.dW = None
 		self.dd = None
+
+	def print_info(self):
+		print 'dominant wave period: ', self.d.argmax(axis=0) + 1
+		print 'avg. power (all coefficients): ', np.abs(self.d).mean()
+		print 'avg. power activation waves: ', self.A.mean()

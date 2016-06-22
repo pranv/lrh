@@ -17,16 +17,16 @@ plt.figure(figsize=(12, 7))
 
 np.random.seed(np.random.randint(1213))
 
-experiment_name = ''
+experiment_name = 'plot_freq_softmax'
 
 permuted = False
 
 n_input = 1
-n_hidden = 64
-n_modules = 4
+n_hidden = 128
+n_modules = 8
 n_output = 10
 
-batch_size = 20
+batch_size = 50
 learning_rate = 1e-3
 niterations = 20000
 momentum = 0.9
@@ -73,7 +73,7 @@ logs['clipped_gradient_norm'] = []
 
 
 model = [
-			CWRNN(n_input=n_input, n_hidden=n_hidden, n_modules=n_modules, T_max=784, last_state_only=True),
+			CWRNN_L1(n_input=n_input, n_hidden=n_hidden, n_modules=n_modules, T_max=784, last_state_only=True),
 			Linear(n_hidden, n_output),
  			SoftmaxCrossEntropyLoss()
  		]

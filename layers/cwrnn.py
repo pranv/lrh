@@ -153,7 +153,6 @@ class CWRNN(Layer):
 		pass
 
 	def print_info(self):
-		_D = self.d.copy()
-		print 'dominant wave period: ', _D.argmax(axis=0) + 1
-		print 'avg. power (all): ', _D.mean()
-		print 'avg. power waves: ', self.A.mean()
+		print 'dominant wave period: ', self.d.argmax(axis=0) + 1
+		print 'avg. power (all coefficients): ', np.abs(self.d).mean()
+		print 'avg. power activation waves: ', self.A.mean()

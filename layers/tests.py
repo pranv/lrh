@@ -105,7 +105,7 @@ def test_activation(layer):
 	finite_difference_check(layer, fwd, all_values, backpropagated_gradients, names, delta, error_threshold)
 
 
-delta = 1e-5
+delta = 1e-4
 error_threshold = 1e-3
 time_steps = 5
 n_input = 3
@@ -123,14 +123,14 @@ test_loss(layer=layer)
 layer = CWRNN(n_input=n_input, n_hidden=8, n_modules=4, T_max=time_steps, last_state_only=False)
 test_layer(layer=layer)
 
-layer = TanH()
-test_activation(layer=layer)
-
-layer = Sigmoid()
-test_activation(layer=layer)
-
 layer = CWRNN_NORM(n_input=n_input, n_hidden=8, n_modules=4, T_max=time_steps, last_state_only=False)
 test_layer(layer=layer)
 
 layer = CWRNN_L1(n_input=n_input, n_hidden=8, n_modules=4, T_max=time_steps, last_state_only=False)
 test_layer(layer=layer)
+
+layer = TanH()
+test_activation(layer=layer)
+
+layer = Sigmoid()
+test_activation(layer=layer)
